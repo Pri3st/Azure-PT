@@ -1,6 +1,6 @@
 # Script to get all Role Assignments for a User, both Direct and Indirect (via Group membership).
 # Roles assigned due to Nested Group membership are also displayed.
-# The script will throw errors when enumerating for Group membership if there are no nested membership. Do not take them into consideration.
+# The script will throw errors when enumerating for non-existent nested Group membership. Do not take them into consideration, the final results will be valid.
 $user = Get-MgUser -UserId $userUPN
 $userId = $user.Id
 
