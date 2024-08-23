@@ -61,7 +61,6 @@ foreach ($group in $groups) {
             $roleDefinitionId = $roleAssignment.RoleDefinitionId
             $roleDefinition = Get-MgRoleManagementDirectoryRoleDefinition -UnifiedRoleDefinitionId $roleDefinitionId
 
-            # Add the role information to the result array
             $allRoles += [PSCustomObject]@{
                 DisplayName  = $roleDefinition.DisplayName
                 Description  = $roleDefinition.Description
