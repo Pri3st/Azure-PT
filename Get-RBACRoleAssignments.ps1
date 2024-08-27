@@ -14,6 +14,7 @@ $creds = New-Object System.Management.Automation.PSCredential('<UPN>', $password
 Connect-AzAccount -Credential $creds
 #>
 
+$upn = (Get-AzContext).Account.Id
 $subscriptionId = (Get-AzContext).Subscription.Id
 $user = Get-AzADUser -UserPrincipalName $userUPN
 $userId = $user.Id
