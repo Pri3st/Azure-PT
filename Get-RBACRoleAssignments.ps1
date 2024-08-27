@@ -19,6 +19,7 @@ $subscriptionId = (Get-AzContext).Subscription.Id
 $user = Get-AzADUser -UserPrincipalName $userUPN
 $userId = $user.Id
 $armtoken = (Get-AzAccessToken -ResourceTypeName Arm).Token
+$apiVersion = '2022-04-01'
 
 $uri = "https://management.azure.com/subscriptions/$subscriptionId/providers/Microsoft.Authorization/roleAssignments?api-version=$apiVersion&`$filter=assignedTo('$userId')"
 
