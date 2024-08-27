@@ -2,7 +2,7 @@
 
 import requests
 import argparse
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def check_blob_container(base_url, container_name):
     url = f"{base_url}{container_name}?restype=container&comp=list"
@@ -14,12 +14,20 @@ def check_blob_container(base_url, container_name):
         print(f"Error checking {container_name}: {e}")
 
 def brute_force_containers(base_url, wordlist, threads):
-    with open(wordlist, 'r') as f:
-        container_names = [line.strip() for line in f]
+    try:
+        with open(wordlist, 'r') as f:
+            container_names = [line.strip() for line in f]
 
-    with ThreadPoolExecutor(max_workers=threads) as executor:
-        for container_name in container_names:
-            executor.submit(check_blob_container, base_url, container_name)
+        with ThreadPoolExecutor(max_workers=threads) as executor:
+            futures = {executor.submit(check_blob_container, base_url, container_name) for container_name in container_names}
+            for future in as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    print(f"Error in thread: {e}")
+
+    except KeyboardInterrupt:
+        print("\n[!] Script interrupted by user. Exiting...")
 
 def main():
     parser = argparse.ArgumentParser(description="Find publicly accessible Azure Blob containers.")
@@ -37,4 +45,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-  
+
