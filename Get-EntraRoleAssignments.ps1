@@ -18,7 +18,6 @@ function Get-AllGroups {
             if ($group) {
                 $groupMemberships += $group
 
-                # Recursive call to find groups the current group is a member of (nested groups)
                 $nestedGroups = Get-AllGroups -principalId $group.Id
                 $groupMemberships += $nestedGroups
             } else {
@@ -32,43 +31,56 @@ function Get-AllGroups {
     return $groupMemberships
 }
 
-$directRoles = Get-MgRoleManagementDirectoryRoleAssignment -Filter "principalId eq '$userId'"
-$allRoles = @()
+function Get-RoleAssignmentsWithScope {
+    param (
+        [string]$principalId
+    )
 
-foreach ($role in $directRoles) {
-    try {
-        $roleDefinitionId = $role.RoleDefinitionId
-        $roleDefinition = Get-MgRoleManagementDirectoryRoleDefinition -UnifiedRoleDefinitionId $roleDefinitionId
-
-        $allRoles += [PSCustomObject]@{
-            DisplayName  = $roleDefinition.DisplayName
-            Description  = $roleDefinition.Description
-        }
-    } catch {
-        Write-Warning "Failed to retrieve role definition for RoleDefinitionId: $($role.RoleDefinitionId)"
-    }
-}
-
-$groups = Get-AllGroups -principalId $userId
-
-foreach ($group in $groups) {
-    $groupId = $group.Id
-
-    $roleAssignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "principalId eq '$groupId'"
+    $rolesWithScope = @()
+    
+    $roleAssignments = Get-MgRoleManagementDirectoryRoleAssignment -Filter "principalId eq '$principalId'"
 
     foreach ($roleAssignment in $roleAssignments) {
         try {
             $roleDefinitionId = $roleAssignment.RoleDefinitionId
             $roleDefinition = Get-MgRoleManagementDirectoryRoleDefinition -UnifiedRoleDefinitionId $roleDefinitionId
 
-            $allRoles += [PSCustomObject]@{
+            $directoryScopeId = $roleAssignment.DirectoryScopeId
+            $scope = if ($directoryScopeId) { $directoryScopeId } else { 'N/A' }
+
+            $rolesWithScope += [PSCustomObject]@{
                 DisplayName  = $roleDefinition.DisplayName
                 Description  = $roleDefinition.Description
+                Scope        = $scope
+                RoleId       = $roleDefinitionId
+                AssignmentId = $roleAssignment.Id
             }
         } catch {
-            Write-Warning "Failed to retrieve role definition for RoleDefinitionId: $($role.RoleDefinitionId)"
+            Write-Warning "Failed to retrieve role definition for RoleDefinitionId: $($roleAssignment.RoleDefinitionId)"
         }
     }
+
+    return $rolesWithScope
 }
 
-$allRoles | Sort-Object DisplayName -Unique | Format-Table -Property DisplayName, Description
+$directRoles = Get-RoleAssignmentsWithScope -principalId $userId
+
+$groups = Get-AllGroups -principalId $userId
+
+$allRoles = $directRoles
+
+foreach ($group in $groups) {
+    $groupId = $group.Id
+
+    $groupRoles = Get-RoleAssignmentsWithScope -principalId $groupId
+    $allRoles += $groupRoles
+}
+
+foreach ($role in $allRoles | Sort-Object DisplayName -Unique) {
+    Write-Output "Role: $($role.DisplayName)"
+    Write-Output "Description: $($role.Description)"
+    Write-Output "Scope: $($role.Scope)"
+    Write-Output "RoleId: $($role.RoleId)"
+    Write-Output "AssignmentId: $($role.AssignmentId)"
+    Write-Output "-----------------------------"
+}
