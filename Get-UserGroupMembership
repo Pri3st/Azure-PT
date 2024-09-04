@@ -1,0 +1,20 @@
+<# 
+Script that enumerates and displays Entra groups that a User Principal is a member of.
+$userPrincipalName can be changed to hold the name of the User Principal in question
+#>
+
+$userPrincipalName = (Get-AzContext).Account.Id
+$WarningPreference = 'SilentlyContinue'
+$groups = Get-AzADGroup
+
+$userGroups = @()
+
+foreach ($group in $groups) {
+    # Get members of the group
+    $members = Get-AzADGroupMember -GroupDisplayName $group.DisplayName
+    
+    # Check if the user is a member
+    if ($members | Where-Object { $_.UserPrincipalName -eq $user.UserPrincipalName }) {
+        $userGroups += $group
+    }
+}
