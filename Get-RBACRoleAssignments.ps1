@@ -14,6 +14,7 @@ $creds = New-Object System.Management.Automation.PSCredential('<UPN>', $password
 Connect-AzAccount -Credential $creds
 #>
 
+# Get role assignments
 $userUPN = (Get-AzContext).Account.Id
 $subscriptionId = (Get-AzContext).Subscription.Id
 $user = Get-AzADUser -UserPrincipalName $userUPN
@@ -33,4 +34,12 @@ $requestParams = @{
 
 $response = Invoke-RestMethod @requestParams
 
-$response.value | Format-List *
+# Get role definitions
+foreach ($assignment in $response.value) {
+    $roleDefinitionId = $assignment.properties.roleDefinitionId
+    $roleDefinitionIdParts = $roleDefinitionId -split '/'
+    $roleDefinitionIdFinal = $roleDefinitionIdParts[-1]
+    
+    $roleDefinition = Get-AzRoleDefinition -Id $roleDefinitionIdFinal
+    $roleDefinition | Format-List *
+}
