@@ -1,0 +1,35 @@
+<#
+Script that shows Ownership of Entra Objects using the Az PowerShell Module along with the Graph API in case enumartion through the MgGraph module (Get-MgUserOwnedObject) is not feasible
+Entra Object Ownership is NOT listed as a Role
+#>
+
+$msgraphtoken = (Get-AzAccessToken -ResourceTypeName MSGraph).Token
+$graphApiUrl = "https://graph.microsoft.com/v1.0/me/ownedObjects"
+
+$headers = @{
+    "Authorization" = "Bearer $msgraphtoken"
+    "Content-Type"  = "application/json"
+}
+
+$response = Invoke-RestMethod -Uri $graphApiUrl -Headers $headers -Method Get
+
+if ($response.value -ne $null) {
+    Write-Host "Owned Objects:" -ForegroundColor Green
+    
+    $results = $response.value | ForEach-Object {
+        # Extract and format the object type
+        $type = $_.'@odata.type' -replace '#microsoft.graph.', ''
+        
+        # Create a custom object with cleaned-up type
+        [PSCustomObject]@{
+            DisplayName = $_.displayName
+            Id          = $_.id
+            Type        = $type
+            Description = $_.description
+        }
+    }
+    
+    $results | Format-Table -Property DisplayName, Id, Type, Description
+} else {
+    Write-Host "No owned objects found." -ForegroundColor Yellow
+}
