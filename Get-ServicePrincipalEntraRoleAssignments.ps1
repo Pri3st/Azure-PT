@@ -1,6 +1,8 @@
-# Script to get all Role Assignments for a Service Principal, both Direct and Indirect (via Group membership).
-# Roles assigned due to Nested Group membership are also displayed.
-# The script will throw errors when enumerating for non-existent nested Group membership. Do not take them into consideration, the final results will be valid.
+<# Script to get all Role Assignments for a Service Principal, both Direct and Indirect (via Group membership).
+Roles assigned due to Nested Group membership are also displayed.
+The script will throw errors when enumerating for non-existent nested Group membership. Do not take them into consideration, the final results will be valid.
+#>
+
 $user = Get-MgServicePrincipal | Where-Object {$_.DisplayName -like "*<SERVICE_PRINCIPAL_NAME*"}
 $userId = $user.Id
 
