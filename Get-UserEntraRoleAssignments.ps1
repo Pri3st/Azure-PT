@@ -42,10 +42,12 @@ foreach ($role in $directRoles) {
     try {
         $roleDefinitionId = $role.RoleDefinitionId
         $roleDefinition = Get-MgRoleManagementDirectoryRoleDefinition -UnifiedRoleDefinitionId $roleDefinitionId
+        $scope = if ($role.DirectoryScopeId) { $role.DirectoryScopeId } else { "Tenant-wide" }
 
         $allRoles += [PSCustomObject]@{
             DisplayName  = $roleDefinition.DisplayName
             Description  = $roleDefinition.Description
+            Scope        = $scope
         }
     } catch {
         Write-Warning "Failed to retrieve role definition for RoleDefinitionId: $($role.RoleDefinitionId)"
@@ -63,10 +65,12 @@ foreach ($group in $groups) {
         try {
             $roleDefinitionId = $roleAssignment.RoleDefinitionId
             $roleDefinition = Get-MgRoleManagementDirectoryRoleDefinition -UnifiedRoleDefinitionId $roleDefinitionId
+            $scope = if ($roleAssignment.DirectoryScopeId) { $roleAssignment.DirectoryScopeId } else { "Tenant-wide" }
 
             $allRoles += [PSCustomObject]@{
                 DisplayName  = $roleDefinition.DisplayName
                 Description  = $roleDefinition.Description
+                Scope        = $scope
             }
         } catch {
             Write-Warning "Failed to retrieve role definition for RoleDefinitionId: $($role.RoleDefinitionId)"
@@ -74,4 +78,4 @@ foreach ($group in $groups) {
     }
 }
 
-$allRoles | Sort-Object DisplayName -Unique | Format-Table -Property DisplayName, Description
+$allRoles | Sort-Object DisplayName -Unique | Format-Table -Property DisplayName, Description, Scope
