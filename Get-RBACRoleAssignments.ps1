@@ -1,5 +1,5 @@
 <#
-Script to find RBAC Roles assigned to a User or Service Principal based on the [Azure Resource Manager (ARM) API](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-rest)
+Script to find RBAC Roles assigned to a User Principal based on the [Azure Resource Manager (ARM) API](https://learn.microsoft.com/en-us/azure/role-based-access-control/role-assignments-list-rest)
 
 If the user is a member of a group that has a role assignment, that role assignment is also listed. This filter is transitive for groups which means that if the user is a member of a group and that group is a member of another group that has a role assignment, that role assignment is also listed.
 This filter only accepts an object ID for a user or a service principal. You cannot pass an object ID for a group.
